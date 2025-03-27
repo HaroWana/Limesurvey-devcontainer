@@ -1,144 +1,124 @@
 # LimeSurvey Dev Container
 
-This is a ready-to-go development environment for [LimeSurvey](https://github.com/LimeSurvey/LimeSurvey), powered by VS Code Dev Containers, Docker Compose, and PostgreSQL.
+This repository provides a fully-configured, containerized development environment for [LimeSurvey](https://github.com/LimeSurvey/LimeSurvey) using **VS Code Dev Containers**, **Docker Compose**, and **PostgreSQL**.
+
+It supports backend and frontend development, unit and functional testing (PHPUnit + Selenium), Xdebug, and includes several helper scripts and tasks.
 
 ---
 
-## 📦 Features
+## 🚀 Quick Start
 
-- PHP 8.1 with Xdebug & Composer
-- Nginx + PHP-FPM
-- PostgreSQL 14 (via Docker volume)
-- Selenium sidecar container (optional)
-- Full PHPUnit & browser test support
-- `supervisord` for process management
-- Automatic install of LimeSurvey schema on reset
-
----
-
-## 🚀 Getting Started
-
-### 1. Open in VS Code
-
-Make sure you have:
+### Requirements
 
 - [Docker](https://docs.docker.com/get-docker/)
-- [VS Code](https://code.visualstudio.com/)
-- [Remote - Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+- [Visual Studio Code](https://code.visualstudio.com/)
+- [Dev Containers Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 
-Then:
+### Setup
 
-1. Clone this repo
+1. Clone the repository
 2. Open it in VS Code
-3. When prompted, click **"Reopen in Container"**
+3. When prompted, click **“Reopen in Container”**
+4. Wait for the build and setup to complete
 
-The dev container will build, install dependencies, and install LimeSurvey automatically via CLI.
-
-> Default admin credentials:  
-> `admin` / `password`
+Visit: [http://localhost:8080/admin](http://localhost:8080/admin)  
+Use credentials:  
+**Username:** `admin`  
+**Password:** `password`
 
 ---
 
-## 🧪 Running Tests
+## 🧪 Testing
 
-Use the helper script:
-
-```bash
-./.devcontainer/scripts/php-unit-test.sh
-```
-
-Or manually inside the container:
+### Run all PHPUnit functional tests
 
 ```bash
-cd /workspace/limesurvey
-DOMAIN=localhost PASSWORD=password ./vendor/bin/phpunit
+./.devcontainer/scripts/php-unit-tests.sh
 ```
 
-> Make sure `enabletests` file exists in `/limesurvey`.
+Or via VS Code task:
+
+```
+Ctrl+Shift+P → Tasks: Run Task → LimeSurvey: Run functional tests
+```
 
 ---
 
 ## 🧼 Clear Cache
 
-Use the helper script:
+Clear LimeSurvey’s runtime cache and restart services:
 
 ```bash
 ./.devcontainer/scripts/clear-cache.sh
 ```
 
-This will:
-- Clear LimeSurvey's runtime/cache
-- Restart PHP-FPM and Nginx using `supervisorctl`
+Also available as a VS Code task:  
+**LimeSurvey: Clear cache and restart services**
 
 ---
 
-## 🛠 Reset the Environment
+## 🔄 Full Environment Reset
 
-To wipe and rebuild everything (containers, volumes, DB, etc):
+Reset the dev container, volumes, DB, and reinstall everything:
 
 ```bash
 ./.devcontainer/scripts/reset-dev.sh
 ```
 
-This will:
+---
 
-- Stop containers
-- Wipe database volume
-- Rebuild the environment
-- Reinstall LimeSurvey from CLI
+## 🧰 Helper Scripts
+
+| Script                   | Purpose                                  |
+|--------------------------|------------------------------------------|
+| `setup.sh`               | Runs at container init, installs LS      |
+| `clear-cache.sh`         | Clears cache + restarts nginx/php-fpm    |
+| `php-unit-tests.sh`      | Runs PHPUnit tests                       |
+| `reset-dev.sh`           | Full environment reset                   |
 
 ---
 
-## ⚙️ Setup Script
+## ⚙️ Services
 
-Runs on container creation or manually:
+Defined in `docker-compose.yml`:
 
-```bash
-./.devcontainer/scripts/setup.sh
-```
-
-This will:
-
-- Wait for DB
-- Install PHP dependencies
-- Enable test mode
-- Run LimeSurvey CLI installer
+- **app**: PHP 8.1 + Nginx + Composer + Xdebug + Supervisor
+- **db**: PostgreSQL 14 with persistent volume
+- **selenium**: Optional Firefox driver for browser testing
 
 ---
 
-## 🌐 Accessing LimeSurvey
+## ⚙️ Configuration Overview
 
-Once the container is running:
-
-- Open: [http://localhost:8080/admin](http://localhost:8080/admin)
-- Login: `admin`
-- Password: `password`
-
----
-
-## 🧩 Dev Notes
-
-- Code lives in `/workspace/limesurvey`
-- Xdebug is installed and configured (port 9003)
-- PostgreSQL credentials come from `.env` file
-- Use `supervisorctl restart nginx/php-fpm` to restart services
-- Cache clearing:
-  ```bash
-  php application/commands/console.php clearcache
-  ```
+- **PHP Config**: `.devcontainer/php.ini`
+- **Xdebug**: `.devcontainer/xdebug.ini`
+- **Nginx Site**: `.devcontainer/default.conf`
+- **Supervisor**: `.devcontainer/supervisord.conf`
 
 ---
 
-## 🐛 Troubleshooting
+## 🐞 Debugging
 
-- Can’t reach `localhost:8080`?
-  - Check that port 80 is exposed in `docker-compose.yml` as `8080:80`
-  - Make sure services are running (`docker ps`)
-- DB errors?
-  - Try resetting schema:
-    ```bash
-    PGPASSWORD=limepass psql -h db -U limeuser -d limesurvey -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
-    ```
+### Xdebug Support
+
+- Port: `9003`
+- Automatically connects on request
+- Configured via `.vscode/launch.json`
+
+To debug:
+
+1. Set breakpoints
+2. Run `Listen for Xdebug` in VS Code debugger
+3. Trigger a request via browser or terminal
+
+---
+
+## 🧠 VS Code Settings & Tasks
+
+- **Editor**: auto formats on save
+- **Excluded folders**: `vendor`, `node_modules`
+- **Tasks**: run tests, clear cache, restart services
+- **Debug**: works with Xdebug out-of-the-box
 
 ---
 
@@ -150,21 +130,36 @@ Once the container is running:
 │   ├── devcontainer.json
 │   ├── docker-compose.yml
 │   ├── Dockerfile
+│   ├── supervisord.conf
+│   ├── php
+│       ├── php.ini
+│       └── xdebug.ini
+│   ├── nginx
+│       └── default.conf
 │   └── scripts/
 │       ├── setup.sh
 │       ├── clear-cache.sh
-│       ├── php-unit-test.sh
+│       ├── php-unit-tests.sh
 │       └── reset-dev.sh
-├── limesurvey/         # Git clone of LimeSurvey repo
 ├── .vscode/
+│   ├── launch.json
+│   ├── settings.json
 │   └── tasks.json
-└── README.md
+├── .env
+├── workspace.code-workspace
+└── limesurvey/            # Source code from LimeSurvey repo
 ```
 
 ---
 
-## 🙋‍♀️ Maintainers
+## 🧹 Tips
 
-- LimeSurvey setup: HaroWana  
-- Dev Container config: HaroWana  
-- Based on official LimeSurvey + Docker + PHPUnit documentation
+- PostgreSQL and Composer cache are mounted volumes — deleted during full reset
+- Xdebug log (if enabled): `/tmp/xdebug.log` inside the container
+- `supervisorctl restart all` restarts services without rebuilding
+
+---
+
+## 🙌 Contributors
+
+- Initial setup: [HaroWana](https://github.com/HaroWana)

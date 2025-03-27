@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "LimeSurvey: Run functional tests",
+      "type": "shell",
+      "command": "../.devcontainer/scripts/php-unit-tests.sh",
+      "options": {
+        "cwd": "${workspaceFolder}/limesurvey"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "LimeSurvey: Clear cache and restart services",
+      "type": "shell",
+      "command": "../.devcontainer/scripts/clear-cache.sh",
+      "options": {
+        "cwd": "${workspaceFolder}/limesurvey"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}
+  

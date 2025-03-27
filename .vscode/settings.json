@@ -1,0 +1,9 @@
+{
+    "php.validate.executablePath": "/usr/bin/php",
+    "editor.formatOnSave": true,
+    "files.exclude": {
+      "**/vendor": true,
+      "**/node_modules": true
+    }
+  }
+  

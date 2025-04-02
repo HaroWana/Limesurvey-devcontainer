@@ -6,7 +6,7 @@ echo "📦 Setting up LimeSurvey..."
 # Clone LimeSurvey if not present
 if [ ! -d "/workspace/limesurvey" ]; then
   echo "Cloning LimeSurvey..."
-  git clone https://github.com/LimeSurvey/LimeSurvey.git /workspace/limesurvey
+  git clone https://github.com/HaroWana/LimeSurvey.git /workspace/limesurvey # Change this line for your target repo
 fi
 
 cd /workspace/limesurvey

@@ -6,23 +6,42 @@ fi
 
 set -e
 
-echo "🧨 Stopping and removing containers + volumes..."
-docker compose down -v
+echo "📦 Loading environment variables from .env..."
+set -a
+. .env
+set +a
 
-# echo "🧹 Optionally deleting the LimeSurvey source..."
-# rm -rf limesurvey
-# git clone https://github.com/LimeSurvey/LimeSurvey.git limesurvey
+# Check required env vars
+if [[ -z "$POSTGRES_USER" || -z "$POSTGRES_PASSWORD" || -z "$POSTGRES_DB" || -z "$GIT_BRANCH" ]]; then
+  echo "❌ Missing required environment variables in .env (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, GIT_BRANCH)"
+  exit 1
+fi
+
+echo "🧨 Stopping and removing containers + volumes..."
+docker compose down -v && cd ..
+
+echo "🧹 Optionally deleting the LimeSurvey source..."
+rm -rf limesurvey
+git clone https://github.com/HaroWana/LimeSurvey.git limesurvey # Change this line for your target repo
+cd limesurvey && git checkout $GIT_BRANCH && cd ..
 
 echo "🔁 Rebuilding containers..."
-docker compose up --build -d
+cd .devcontainer && docker compose up --build -d && cd ..
 
 echo "⏳ Waiting for the database to become ready..."
-until docker exec limesurvey-dev_app_1 pg_isready -h db -p 5432 -U limeuser; do
+until docker exec devcontainer-app-1 pg_isready -h db -p 5432 -U limeuser; do
   sleep 1
 done
 
+echo "🗑️ Dropping and recreating the limesurvey database..."
+docker exec devcontainer-app-1 bash -c '
+  export PGPASSWORD=limepass
+  psql -h db -U limeuser -d postgres -c "DROP DATABASE IF EXISTS limesurvey;"
+  psql -h db -U limeuser -d postgres -c "CREATE DATABASE limesurvey;"
+'
+
 echo "🧱 Reinstalling LimeSurvey schema via CLI..."
-docker exec limesurvey-dev_app_1 bash -c "
+docker exec devcontainer-app-1 bash -c "
   cd /workspace/limesurvey &&
   touch enabletests && \
   DBENGINE=INNODB \

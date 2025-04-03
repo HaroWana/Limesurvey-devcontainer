@@ -23,7 +23,7 @@ docker compose down -v && cd ..
 echo "🧹 Optionally deleting the LimeSurvey source..."
 rm -rf limesurvey
 git clone https://github.com/HaroWana/LimeSurvey.git limesurvey # Change this line for your target repo
-cd limesurvey && git checkout $GIT_BRANCH && cd ..
+cd limesurvey && git checkout $GIT_BRANCH && cd .. # Toggle (comment) if you want to switch to specific branch
 
 echo "🔁 Rebuilding containers..."
 cd .devcontainer && docker compose up --build -d && cd ..
